@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#08050b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Una cápsula del tiempo para celebrar nuestros dias." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <title>Nuestro tiempo juntos</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Parisienne&display=swap');
+
+    :root {
+      --ink: #fff7fc;
+      --muted: #c5aeba;
+      --wine: #2d0e25;
+      --wine-deep: #130711;
+      --pink: #f173b4;
+      --pink-bright: #ff9acb;
+      --gold: #ffd96b;
+      --gold-bright: #fff2a5;
+      --line: rgba(255, 145, 204, .46);
+      --shadow-pink: 0 0 24px rgba(234, 55, 148, .34), inset 0 0 24px rgba(225, 60, 145, .08);
+      --shadow-gold: 0 0 22px rgba(255, 211, 71, .30), inset 0 0 22px rgba(255, 211, 71, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #050308;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-x: none;
+    }
+
+    button { font: inherit; }
+
+    .cosmos {
+      min-height: 100svh;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(155, 19, 96, .20), transparent 35rem),
+        radial-gradient(circle at 0% 70%, rgba(96, 12, 72, .14), transparent 28rem),
+        #050308;
+    }
+
+    .cosmos::before,
+    .cosmos::after {
+      content: '';
+      position: fixed;
+      inset: -40%;
+      z-index: -2;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle, rgba(255, 255, 255, .95) 0 1px, transparent 1.7px),
+        radial-gradient(circle, rgba(255, 220, 107, .82) 0 1px, transparent 1.7px),
+        radial-gradient(circle, rgba(255, 124, 194, .72) 0 1px, transparent 1.7px);
+      background-size: 113px 137px, 191px 179px, 239px 211px;
+      background-position: 18px 12px, 74px 91px, 130px 24px;
+      opacity: .62;
+      animation: drift 34s linear infinite;
+    }
+
+    .cosmos::after {
+      z-index: -1;
+      opacity: .24;
+      transform: rotate(18deg) scale(1.08);
+      animation-duration: 48s;
+      animation-direction: reverse;
+    }
+
+    .particle-field { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+    .particle {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      left: var(--x);
+      top: var(--y);
+      border-radius: 50%;
+      background: var(--particle-color);
+      box-shadow: 0 0 8px var(--particle-color);
+      opacity: var(--opacity);
+      animation: twinkle var(--duration) ease-in-out infinite var(--delay);
+    }
+
+    .app-shell {
+      width: min(100%, 1040px);
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: clamp(20px, 5vw, 50px) clamp(16px, 4vw, 44px) 44px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen { display: none; flex: 1; animation: screen-in .65s ease both; }
+    .screen.active { display: block; }
+
+    .auth-screen { display: none; place-items: center; }
+    .auth-screen.active { display: grid; }
+
+    .auth-wrap { width: min(100%, 390px); text-align: center; }
+
+    .eyebrow {
+      margin: 0 0 11px;
+      color: var(--gold);
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .26em;
+      text-transform: uppercase;
+    }
+
+    .lock-orbit {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 20px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      color: var(--gold);
+      border: 1px solid rgba(255, 218, 102, .55);
+      border-radius: 50%;
+      box-shadow: var(--shadow-gold);
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    .lock-orbit::before,
+    .lock-orbit::after {
+      content: '';
+      position: absolute;
+      border: 1px solid rgba(255, 218, 102, .26);
+      border-radius: 50%;
+    }
+    .lock-orbit::before { inset: -7px; }
+    .lock-orbit::after { inset: -14px; border-color: rgba(255, 131, 190, .20); }
+    .lock-icon { width: 27px; height: 27px; }
+
+    h1, h2, h3, .serif { font-family: 'Cinzel', Georgia, serif; }
+
+    .auth-title {
+      margin: 0;
+      color: var(--gold-bright);
+      font-size: clamp(1.45rem, 5vw, 2.15rem);
+      letter-spacing: .16em;
+      line-height: 1.35;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(255, 211, 71, .32);
+    }
+
+    .auth-subtitle { margin: 10px 0 25px; color: var(--muted); font-size: .83rem; }
+
+    .code-dots { min-height: 24px; display: flex; justify-content: center; gap: 9px; margin-bottom: 27px; }
+    .code-dot {
+      width: 9px;
+      height: 9px;
+      border: 1px solid var(--pink);
+      border-radius: 50%;
+      box-shadow: 0 0 9px rgba(245, 101, 179, .4);
+      transition: .2s ease;
+    }
+    .code-dot.filled { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 13px var(--gold); }
+    .code-dot.error { animation: shake .35s ease; border-color: #ff6868; background: #ff6868; }
+
+    .keypad {
+      width: min(100%, 278px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 11px;
+    }
+
+    .key,
+    .pill-button,
+    .arrow-button {
+      cursor: pointer;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, rgba(81, 30, 66, .76), rgba(29, 10, 25, .82));
+      box-shadow: var(--shadow-pink);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .key:hover, .key:focus-visible, .pill-button:hover, .pill-button:focus-visible, .arrow-button:hover, .arrow-button:focus-visible {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: var(--shadow-gold);
+      transform: translateY(-2px);
+    }
+    .key:active, .pill-button:active, .arrow-button:active { transform: scale(.95); }
+    .key { width: 100%; aspect-ratio: 1; border-radius: 50%; font-weight: 600; font-size: 1rem; }
+    .key.special { color: var(--muted); font-size: .77rem; }
+
+    .demo-hint { margin: 23px 0 0; color: rgba(197, 174, 186, .62); font-size: .68rem; }
+    .demo-hint code { color: rgba(255, 218, 102, .82); }
+
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: clamp(34px, 9vw, 78px); }
+    .brand-mark { color: var(--pink-bright); font-family: 'Parisienne', cursive; font-size: 1.65rem; text-shadow: 0 0 14px rgba(241, 115, 180, .4); }
+    .top-note { color: var(--muted); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; }
+
+    .hero { text-align: center; }
+    .hero h1 { margin: 0; color: var(--gold-bright); font-size: clamp(1.7rem, 6vw, 3.1rem); letter-spacing: .09em; text-shadow: 0 0 21px rgba(255, 217, 107, .33); }
+    .hero .lead { max-width: 540px; margin: 14px auto 0; color: var(--muted); font-size: .88rem; line-height: 1.7; }
+
+    .counter-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 34px auto 31px; }
+    .counter-card {
+      min-width: 0;
+      padding: 16px 8px 13px;
+      border: 1px solid rgba(224, 104, 173, .42);
+      border-radius: 12px;
+      background: linear-gradient(145deg, rgba(53, 16, 44, .80), rgba(20, 7, 17, .76));
+      box-shadow: var(--shadow-pink);
+    }
+    .counter-number { display: block; color: #fff4f5; font-family: Georgia, serif; font-size: clamp(1.2rem, 4vw, 2rem); line-height: 1; text-shadow: 0 0 12px rgba(255, 227, 229, .4); }
+    .counter-label { display: block; margin-top: 8px; color: var(--gold); font-size: .53rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+
+    .action-row { display: flex; justify-content: center; gap: 13px; flex-wrap: wrap; }
+    .pill-button { min-width: 145px; padding: 12px 22px; border-radius: 999px; color: #ffeef8; font-size: .71rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .pill-button.primary { color: #351021; border-color: var(--gold); background: linear-gradient(135deg, #fff069, #f3a52e); box-shadow: 0 0 23px rgba(255, 196, 63, .37); }
+    .pill-button.primary:hover, .pill-button.primary:focus-visible { color: #1f0715; background: linear-gradient(135deg, #fff9a2, #ffc151); }
+
+    .section-heading { text-align: center; margin-bottom: 32px; }
+    .section-heading h2 { margin: 0; color: var(--gold-bright); font-size: clamp(1.45rem, 5vw, 2.1rem); letter-spacing: .15em; text-transform: uppercase; text-shadow: 0 0 16px rgba(255, 217, 107, .28); }
+    .section-heading p { margin: 10px 0 0; color: var(--muted); font-size: .83rem; }
+
+    .memory-stage { position: relative; min-height: 410px; display: grid; place-items: center; overflow: hidden; touch-action: pan-y; user-select: none; cursor: grab; }
+    .memory-stage:active { cursor: grabbing; }
+    .memory-stage::before { content: ''; position: absolute; width: 240px; height: 160px; border-radius: 50%; background: rgba(238, 68, 151, .16); filter: blur(42px); }
+    .memory-card { width: min(66vw, 285px); aspect-ratio: .78; position: absolute; display: flex; padding: 14px; cursor: pointer; border: 1px solid rgba(255, 217, 107, .7); border-radius: 15px; background: #210915; box-shadow: var(--shadow-gold); transition: transform .55s cubic-bezier(.2,.75,.25,1), opacity .4s ease, filter .4s ease; -webkit-tap-highlight-color: transparent; perspective: 1000px; }
+    .memory-card:focus-visible { outline: 2px solid var(--gold-bright); outline-offset: 5px; }
+    .memory-inner { width: 100%; min-height: 0; position: relative; flex: 1; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2,.75,.25,1); }
+    .memory-card.is-flipped .memory-inner { transform: rotateY(180deg); }
+    .memory-face { position: absolute; inset: 0; overflow: hidden; border-radius: 9px; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .memory-front { display: flex; flex-direction: column; background: #4b183b; }
+    .memory-card img { width: 100%; min-height: 0; flex: 1; object-fit: cover; background: #4b183b; }
+    .memory-card figcaption { padding: 10px 5px 2px; color: var(--gold-bright); font-family: 'Cinzel', Georgia, serif; font-size: .68rem; letter-spacing: .08em; text-align: center; text-transform: uppercase; }
+    .memory-back { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 27px 22px; color: #fff4fa; text-align: center; background: radial-gradient(circle at 50% 34%, rgba(255, 194, 82, .18), transparent 32%), linear-gradient(145deg, #4b123f, #1a0719); transform: rotateY(180deg); }
+    .memory-back::before { content: ''; position: absolute; inset: 9px; border: 1px solid rgba(255, 217, 107, .35); border-radius: 6px; pointer-events: none; }
+    .back-icon { margin-bottom: 18px; color: var(--gold); font-size: 1.35rem; text-shadow: 0 0 13px rgba(255, 217, 107, .6); }
+    .memory-back p { margin: 0; color: #fbeef5; font-family: Georgia, serif; font-size: .92rem; line-height: 1.65; }
+    .back-hint { margin-top: 23px; color: var(--pink-bright); font-size: .55rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .memory-card[data-position="0"] { z-index: 3; transform: translateX(0) rotate(0) scale(1); opacity: 1; }
+    .memory-card[data-position="-1"] { z-index: 2; transform: translateX(-58%) rotate(-13deg) scale(.82); opacity: .72; filter: saturate(.8); }
+    .memory-card[data-position="1"] { z-index: 2; transform: translateX(58%) rotate(13deg) scale(.82); opacity: .72; filter: saturate(.8); }
+    .memory-card[data-position="-2"], .memory-card[data-position="2"] { z-index: 1; opacity: 0; transform: translateX(0) scale(.65); pointer-events: none; }
+    .carousel-controls { display: flex; justify-content: center; align-items: center; margin-top: 7px; }
+    .carousel-dots { display: flex; gap: 7px; }
+    .carousel-dot { width: 7px; height: 7px; cursor: pointer; border: 1px solid var(--pink); border-radius: 50%; background: transparent; transition: .2s ease; }
+    .carousel-dot.active { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
+    .carousel-tip { margin: 14px 0 0; color: rgba(197, 174, 186, .72); font-size: .68rem; letter-spacing: .06em; text-align: center; }
+
+    .letter-wrap { width: min(100%, 760px); margin: 0 auto; }
+    .letter-card { min-height: 430px; padding: clamp(24px, 6vw, 53px); border: 1px solid rgba(255, 217, 107, .62); border-radius: 14px; background: linear-gradient(145deg, rgba(38, 8, 28, .88), rgba(14, 4, 11, .91)); box-shadow: var(--shadow-gold); }
+    .letter-card::before { content: '✦'; display: block; margin-bottom: 25px; color: var(--gold); font-size: 1.1rem; }
+    .letter-content { color: #f5e9ef; font-family: Georgia, serif; font-size: clamp(.93rem, 2.2vw, 1.06rem); line-height: 1.95; }
+    .letter-content p { min-height: 1.95em; margin: 0 0 20px; }
+    .letter-content .signature { margin-top: 35px; color: var(--gold-bright); font-family: 'Parisienne', cursive; font-size: clamp(2.1rem, 7vw, 3.1rem); line-height: 1; text-align: right; text-shadow: 0 0 16px rgba(255, 217, 107, .35); }
+
+    .bottom-back { display: flex; justify-content: center; margin-top: 28px; }
+    .back-button { min-width: 112px; }
+
+    .toast { position: fixed; left: 50%; bottom: 22px; z-index: 10; max-width: calc(100% - 32px); padding: 10px 16px; color: #fff6fc; border: 1px solid rgba(255, 217, 107, .65); border-radius: 999px; background: rgba(36, 9, 29, .92); box-shadow: var(--shadow-gold); font-size: .76rem; transform: translate(-50%, 130%); transition: transform .3s ease; }
+    .toast.show { transform: translate(-50%, 0); }
+
+    @keyframes drift { to { transform: translate3d(5%, 4%, 0) rotate(3deg); } }
+    @keyframes twinkle { 0%, 100% { opacity: .18; transform: scale(.75); } 50% { opacity: .9; transform: scale(1.3); } }
+    @keyframes breathe { 0%, 100% { box-shadow: var(--shadow-gold); } 50% { box-shadow: 0 0 38px rgba(255, 211, 71, .50), inset 0 0 30px rgba(255, 211, 71, .14); } }
+    @keyframes screen-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shake { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+
+    @media (max-width: 680px) {
+      .app-shell { width: 100%; padding-top: max(28px, env(safe-area-inset-top)); padding-bottom: max(44px, env(safe-area-inset-bottom)); }
+      .topbar { margin-bottom: 45px; }
+      .top-note { display: none; }
+      .counter-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 28px; }
+      .counter-card { padding: 14px 6px 12px; }
+      .memory-stage { min-height: 370px; }
+      .memory-card { width: min(64vw, 245px); }
+      .memory-card[data-position="-1"] { transform: translateX(-48%) rotate(-11deg) scale(.76); }
+      .memory-card[data-position="1"] { transform: translateX(48%) rotate(11deg) scale(.76); }
+      .letter-card { min-height: 450px; }
+    }
+
+    @media (max-width: 680px) and (orientation: landscape) {
+      .app-shell { padding-top: 22px; }
+      .auth-wrap { transform: scale(.82); transform-origin: top center; }
+      .topbar { margin-bottom: 26px; }
+      .memory-stage { min-height: 300px; }
+      .memory-card { width: min(35vw, 220px); }
+    }
+
+    @media (max-width: 390px) {
+      .brand-mark { font-size: 1.4rem; }
+      .auth-title { font-size: 1.3rem; }
+      .keypad { width: 248px; gap: 9px; }
+      .key { font-size: .92rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cosmos">
+    <div class="particle-field" aria-hidden="true"></div>
+
+    <main class="app-shell">
+      <section class="screen auth-screen active" id="authScreen" aria-labelledby="authTitle">
+        <div class="auth-wrap">
+          <div class="lock-orbit" aria-hidden="true">
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 14v3"/></svg>
+          </div>
+          <p class="eyebrow">Una fecha guardada para siempre</p>
+          <h1 class="auth-title" id="authTitle">Feliz Dia</h1>
+          <p class="auth-subtitle">Introduce nuestra fecha</p>
+          <div class="code-dots" id="codeDots" aria-label="Código introducido"></div>
+          <div class="keypad" aria-label="Teclado numérico">
+            <button class="key" data-key="1">1</button><button class="key" data-key="2">2</button><button class="key" data-key="3">3</button>
+            <button class="key" data-key="4">4</button><button class="key" data-key="5">5</button><button class="key" data-key="6">6</button>
+            <button class="key" data-key="7">7</button><button class="key" data-key="8">8</button><button class="key" data-key="9">9</button>
+            <button class="key special" data-action="clear">C</button><button class="key" data-key="0">0</button><button class="key special" data-action="backspace" aria-label="Borrar último dígito">⌫</button>
+          </div>
+          <p class="demo-hint">Formato: <code>DDMMYYYY</code></p>
+        </div>
+      </section>
+
+      <section class="screen" id="homeScreen" aria-labelledby="homeTitle">
+        <header class="topbar"><span class="brand-mark">para nosotros</span><span class="top-note">una pequeña cápsula del tiempo</span></header>
+        <div class="hero">
+          <p class="eyebrow">Desde aquel día</p>
+          <h1 id="homeTitle">Nuestro tiempo juntos</h1>
+          <p class="lead">Cada segundo a tu lado se convierte en un recuerdo que quiero guardar para siempre.</p>
+          <div class="counter-grid" id="counterGrid" aria-live="polite"></div>
+          <div class="action-row"><button class="pill-button primary" data-go="memoriesScreen">Ver recuerdos</button><button class="pill-button" data-go="letterScreen">Leer carta</button></div>
+        </div>
+      </section>
+
+      <section class="screen" id="memoriesScreen" aria-labelledby="memoriesTitle">
+        <header class="section-heading"><p class="eyebrow">Pequeños tesoros</p><h2 id="memoriesTitle">Recuerdos</h2><p>Momentos que viven en nuestro universo.</p></header>
+        <div class="memory-stage" id="memoryStage" aria-label="Carrusel de recuerdos. Desliza horizontalmente para cambiar de imagen"></div>
+        <div class="carousel-controls"><div class="carousel-dots" id="carouselDots"></div></div>
+        <p class="carousel-tip">Desliza para descubrir nuestros recuerdos · toca una tarjeta para darle la vuelta</p>
+        <div class="bottom-back"><button class="pill-button back-button" data-go="homeScreen">Volver</button></div>
+      </section>
+
+      <section class="screen" id="letterScreen" aria-labelledby="letterTitle">
+        <header class="section-heading"><p class="eyebrow">Para leer despacito</p><h2 id="letterTitle">Una carta para ti</h2><p>Hay cosas que merecen quedarse escritas.</p></header>
+        <div class="letter-wrap"><article class="letter-card"><div class="letter-content" id="letterContent" aria-live="polite"></div></article></div>
+        <div class="bottom-back"><button class="pill-button back-button" data-go="homeScreen">Volver</button></div>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+
+  <script>
+    // CONFIGURACIÓN RÁPIDA: aquí podrás cambiar la fecha y el código cuando personalicemos el regalo.
+    const CONFIG = {
+      accessCode: '24042024',
+      anniversary: new Date(2024, 3, 24, 0, 0, 0),
+      memories: [
+        { image: 'assets/recuerdo-1.jpg', title: 'Nuestro pequeño universo', backText: 'Desde que llegaste, hasta los días normales tienen algo especial. Gracias por ser mi lugar favorito.' },
+        { image: 'assets/recuerdo-2.jpg', title: 'Tú y yo', backText: 'No importa el lugar ni el momento: si estás tú, estoy en casa.' },
+        { image: 'assets/recuerdo-3.jpg', title: 'Siempre contigo', backText: 'Te elegiría en esta vida y en todas las que nos falten.' },
+        { image: 'assets/recuerdo-4.jpg', title: 'Nuestro bebé', backText: 'Oreo, nuestro pequeño bebé de cuatro patas.' }
+      ]
+    };
+
+    const screens = [...document.querySelectorAll('.screen')];
+    const codeDots = document.querySelector('#codeDots');
+    const toast = document.querySelector('#toast');
+    const counterGrid = document.querySelector('#counterGrid');
+    let enteredCode = '';
+    let currentMemory = 0;
+    let letterStarted = false;
+    let suppressCardFlip = false;
+
+    function createParticles() {
+      const field = document.querySelector('.particle-field');
+      const colors = ['#ffffff', '#ffd96b', '#ff84bd'];
+      for (let i = 0; i < 95; i += 1) {
+        const particle = document.createElement('i');
+        particle.className = 'particle';
+        particle.style.setProperty('--x', `${Math.random() * 100}%`);
+        particle.style.setProperty('--y', `${Math.random() * 100}%`);
+        particle.style.setProperty('--size', `${Math.random() * 2.5 + .7}px`);
+        particle.style.setProperty('--opacity', `${Math.random() * .62 + .18}`);
+        particle.style.setProperty('--duration', `${Math.random() * 4 + 3}s`);
+        particle.style.setProperty('--delay', `${Math.random() * -7}s`);
+        particle.style.setProperty('--particle-color', colors[Math.floor(Math.random() * colors.length)]);
+        field.appendChild(particle);
+      }
+    }
+
+    function renderCodeDots() {
+      codeDots.innerHTML = '';
+      for (let i = 0; i < CONFIG.accessCode.length; i += 1) {
+        const dot = document.createElement('span');
+        dot.className = `code-dot ${i < enteredCode.length ? 'filled' : ''}`;
+        codeDots.appendChild(dot);
+      }
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      window.clearTimeout(showToast.timeout);
+      showToast.timeout = window.setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function goTo(screenId) {
+      screens.forEach(screen => screen.classList.toggle('active', screen.id === screenId));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (screenId === 'letterScreen') startLetter();
+    }
+
+    function submitCode() {
+      if (enteredCode === CONFIG.accessCode) {
+        goTo('homeScreen');
+        showToast('La fecha es correcta. Bienvenido a nuestro universo ✦');
+        return;
+      }
+      codeDots.querySelectorAll('.code-dot').forEach(dot => dot.classList.add('error'));
+      showToast('Esa no es nuestra fecha… prueba de nuevo');
+      window.setTimeout(() => { enteredCode = ''; renderCodeDots(); }, 420);
+    }
+
+    document.querySelectorAll('[data-key]').forEach(button => button.addEventListener('click', () => {
+      if (enteredCode.length >= CONFIG.accessCode.length) return;
+      enteredCode += button.dataset.key;
+      renderCodeDots();
+      if (enteredCode.length === CONFIG.accessCode.length) window.setTimeout(submitCode, 180);
+    }));
+    document.querySelector('[data-action="clear"]').addEventListener('click', () => { enteredCode = ''; renderCodeDots(); });
+    document.querySelector('[data-action="backspace"]').addEventListener('click', () => { enteredCode = enteredCode.slice(0, -1); renderCodeDots(); });
+    document.addEventListener('keydown', event => {
+      if (!document.querySelector('#authScreen').classList.contains('active')) return;
+      if (/^[0-9]$/.test(event.key)) document.querySelector(`[data-key="${event.key}"]`)?.click();
+      if (event.key === 'Backspace') document.querySelector('[data-action="backspace"]').click();
+      if (event.key === 'Escape') document.querySelector('[data-action="clear"]').click();
+    });
+
+    function dateDifference(start, end) {
+      let years = end.getFullYear() - start.getFullYear();
+      let anchor = new Date(start);
+      anchor.setFullYear(start.getFullYear() + years);
+      if (anchor > end) { years -= 1; anchor = new Date(start); anchor.setFullYear(start.getFullYear() + years); }
+      let months = end.getMonth() - anchor.getMonth();
+      if (months < 0) months += 12;
+      const monthAnchor = new Date(anchor);
+      monthAnchor.setMonth(anchor.getMonth() + months);
+      if (monthAnchor > end) { months -= 1; monthAnchor.setMonth(anchor.getMonth() + months); }
+      const remainingMs = Math.max(0, end - monthAnchor);
+      const days = Math.floor(remainingMs / 86400000);
+      const afterDays = remainingMs - days * 86400000;
+      const hours = Math.floor(afterDays / 3600000);
+      const minutes = Math.floor((afterDays % 3600000) / 60000);
+      const seconds = Math.floor((afterDays % 60000) / 1000);
+      return { years, months, days, hours, minutes, seconds };
+    }
+
+    function renderCounter() {
+      const values = dateDifference(CONFIG.anniversary, new Date());
+      const labels = [['years', 'años'], ['months', 'meses'], ['days', 'días'], ['hours', 'horas'], ['minutes', 'min'], ['seconds', 'seg']];
+      counterGrid.innerHTML = labels.map(([key, label]) => `<div class="counter-card"><span class="counter-number">${String(values[key]).padStart(2, '0')}</span><span class="counter-label">${label}</span></div>`).join('');
+    }
+
+    const memoryStage = document.querySelector('#memoryStage');
+    const carouselDots = document.querySelector('#carouselDots');
+    function renderMemories() {
+      memoryStage.innerHTML = CONFIG.memories.map((memory, index) => `<figure class="memory-card" data-index="${index}" tabindex="0" role="button" aria-pressed="false" aria-label="${memory.title}. Toca para descubrir el mensaje"><div class="memory-inner"><div class="memory-face memory-front"><img src="${memory.image}" alt="${memory.title}" loading="lazy"><figcaption>${memory.title}</figcaption></div><div class="memory-face memory-back" aria-hidden="true"><span class="back-icon">✦</span><p>${memory.backText}</p><span class="back-hint">Toca para volver</span></div></div></figure>`).join('');
+      memoryStage.querySelectorAll('.memory-card').forEach(card => {
+        const flip = () => {
+          if (suppressCardFlip) return;
+          const flipped = card.classList.toggle('is-flipped');
+          card.setAttribute('aria-pressed', String(flipped));
+          card.querySelector('.memory-back').setAttribute('aria-hidden', String(!flipped));
+        };
+        card.addEventListener('click', flip);
+        card.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); flip(); }
+        });
+      });
+      carouselDots.innerHTML = CONFIG.memories.map((_, index) => `<button class="carousel-dot" data-memory="${index}" aria-label="Mostrar recuerdo ${index + 1}"></button>`).join('');
+      carouselDots.querySelectorAll('[data-memory]').forEach(dot => dot.addEventListener('click', () => { currentMemory = Number(dot.dataset.memory); updateCarousel(); }));
+      updateCarousel();
+    }
+    function updateCarousel() {
+      const total = CONFIG.memories.length;
+      memoryStage.querySelectorAll('.memory-card').forEach(card => {
+        let offset = Number(card.dataset.index) - currentMemory;
+        if (offset > total / 2) offset -= total;
+        if (offset < -total / 2) offset += total;
+        card.dataset.position = offset;
+        card.classList.remove('is-flipped');
+        card.setAttribute('aria-pressed', 'false');
+      });
+      carouselDots.querySelectorAll('.carousel-dot').forEach((dot, index) => dot.classList.toggle('active', index === currentMemory));
+    }
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipePointerId = null;
+    memoryStage.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      swipeStartX = event.clientX;
+      swipeStartY = event.clientY;
+      swipePointerId = event.pointerId;
+      memoryStage.setPointerCapture?.(event.pointerId);
+    });
+    memoryStage.addEventListener('pointerup', event => {
+      if (event.pointerId !== swipePointerId) return;
+      const deltaX = event.clientX - swipeStartX;
+      const deltaY = event.clientY - swipeStartY;
+      swipePointerId = null;
+      if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+      suppressCardFlip = true;
+      currentMemory = deltaX < 0 ? (currentMemory + 1) % CONFIG.memories.length : (currentMemory - 1 + CONFIG.memories.length) % CONFIG.memories.length;
+      updateCarousel();
+      window.setTimeout(() => { suppressCardFlip = false; }, 500);
+    });
+    memoryStage.addEventListener('pointercancel', () => { swipePointerId = null; });
+
+    const letterParagraphs = [
+      'Amor de mi Vida,',
+      'Gracias por ser el refugio de mi vida, por cada instante, cada risa y hasta por los silencios que hemos compartido.',
+      'Quiero que sepas, hoy y siempre, que mi lugar favorito en el mundo es a tu lado.',
+      'Te quiero mucho. Por todas los dias que nos faltan.',
+      'Te Amo'
+    ];
+    async function typeText(element, text, speed = 23) {
+      for (const character of text) { element.textContent += character; await new Promise(resolve => window.setTimeout(resolve, speed)); }
+    }
+    async function startLetter() {
+      if (letterStarted) return;
+      letterStarted = true;
+      const content = document.querySelector('#letterContent');
+      for (let index = 0; index < letterParagraphs.length; index += 1) {
+        const paragraph = document.createElement('p');
+        if (index === letterParagraphs.length - 1) paragraph.className = 'signature';
+        content.appendChild(paragraph);
+        await typeText(paragraph, letterParagraphs[index], index === 0 ? 32 : 18);
+      }
+    }
+
+    document.querySelectorAll('[data-go]').forEach(button => button.addEventListener('click', () => goTo(button.dataset.go)));
+    createParticles();
+    renderCodeDots();
+    renderCounter();
+    renderMemories();
+    window.setInterval(renderCounter, 1000);
+  </script>
+</body>
+</html>
